@@ -25,6 +25,7 @@ app.use(
         secret: process.env.SESSION_SECRET || 'academy_secret_key_change_in_production',
         resave: false,
         saveUninitialized: false,
+        store: require('connect-mongo').create({ mongoUrl: process.env.MONGO_URL }),
         cookie: {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
