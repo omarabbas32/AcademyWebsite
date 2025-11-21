@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IATD Admin Dashboard - الأكاديمية الدولية للتدريب والتنمية</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        .btn-danger { background: #dc2626; color: white; margin-left: 0.5rem; }
+        .btn-success { background: #16a34a; color: white; }
+        .btn-small { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+        .image-preview { max-width: 100px; max-height: 100px; object-fit: cover; border-radius: 8px; }
+        .tab-buttons { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; flex-wrap: wrap; }
+        .tab-btn { padding: 0.75rem 1.5rem; background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-weight: 600; color: #64748b; }
+        .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .academy-header { text-align: center; margin-bottom: 1rem; }
+        .academy-header h1 { margin: 0.5rem 0; color: #2563eb; }
+        .academy-header p { margin: 0.25rem 0; color: #64748b; }
+        .link-display { background: #f1f5f9; padding: 0.75rem; border-radius: 8px; margin: 0.5rem 0; word-break: break-all; font-family: monospace; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <div class="card academy-header">
+            <h1>🎓 IATD Admin Dashboard</h1>
+            <p><strong>الأكاديمية الدولية للتدريب والتنمية</strong></p>
+            <p>International Academy for Training and Development</p>
+            <button class="secondary btn-small" onclick="logout()">Logout</button>
+        </div>
+
+        <div id="login-card" class="card">
+            <h2>Admin Login</h2>
+            <form id="admin-login-form">
+                <label>Username or Email</label>
+                <input type="text" name="email" required placeholder="Enter username or email" />
+                <label>Password</label>
+                <input type="password" name="password" required />
+                <button class="primary" type="submit">Sign in</button>
+            </form>
+        </div>
+
+        <div id="admin-area" class="hidden">
+            <!-- Tab Navigation -->
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('team')">Team Members</button>
+                <button class="tab-btn" onclick="switchTab('courses')">Courses</button>
+                <button class="tab-btn" onclick="switchTab('exams')">Exams</button>
+                <button class="tab-btn" onclick="switchTab('users')">Users</button>
+                <button class="tab-btn" onclick="switchTab('submissions')">Submissions</button>
+                <button class="tab-btn" onclick="switchTab('sites')">Offline Sites</button>
+            </div>
+
+            <!-- Team Members Tab -->
+            <div id="team-tab" class="tab-content active">
+                <div class="card">
+                    <h2>Add Team Member</h2>
+                    <form id="create-team-member-form">
+                        <label>Name</label>
+                        <input type="text" name="name" required />
+                        <label>Job Title</label>
+                        <input type="text" name="jobTitle" required />
+                        <label>Image</label>
+                        <input type="file" name="image" accept="image/*" />
+                        <button class="primary" type="submit">Add Team Member</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>Team Members</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Job Title</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="team-members-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Courses Tab -->
+            <div id="courses-tab" class="tab-content">
+                <div class="card">
+                    <h2>Add Course</h2>
+                    <form id="create-course-form">
+                        <label>Course Name</label>
+                        <input type="text" name="name" required />
+                        <label>Description</label>
+                        <textarea name="description" rows="3" required></textarea>
+                        <label>Duration</label>
+                        <input type="text" name="duration" placeholder="e.g., 8 weeks" required />
+                        <label>Instructor</label>
+                        <input type="text" name="instructor" required />
+                        <label>Level</label>
+                        <select name="level">
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                        </select>
+                        <label>Prerequisites (Optional)</label>
+                        <input type="text" name="prerequisites" />
+                        <label>Syllabus (Optional)</label>
+                        <textarea name="syllabus" rows="3"></textarea>
+                        <label>Course Image</label>
+                        <input type="file" name="image" accept="image/*" />
+                        <button class="primary" type="submit">Add Course</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>Courses</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Instructor</th>
+                                <th>Duration</th>
+                                <th>Level</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="courses-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Exams Tab -->
+            <div id="exams-tab" class="tab-content">
+                <div class="card">
+                    <h2>Create Exam</h2>
+                    <form id="create-exam-form">
+                        <label>Title</label>
+                        <input type="text" name="title" required />
+                        <label>Description</label>
+                        <textarea name="description" rows="3"></textarea>
+                        <label>Duration (minutes)</label>
+                        <input type="number" name="duration" placeholder="e.g., 60" />
+                        <label>Passing Score (%)</label>
+                        <input type="number" name="passingScore" value="60" min="0" max="100" />
+                        <label>
+                            <input type="checkbox" name="isPublished" />
+                            Publish immediately
+                        </label>
+                        <div id="questions-panel"></div>
+                        <button class="secondary" type="button" id="add-question-btn">Add Question</button>
+                        <button class="primary" type="submit">Save Exam</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>Exams</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Questions</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="exams-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="users-tab" class="tab-content">
+                <div class="card">
+                    <h2>Create User</h2>
+                    <form id="create-user-form">
+                        <label>Name</label>
+                        <input type="text" name="name" required />
+                        <label>Username</label>
+                        <input type="text" name="username" required />
+                        <label>Email</label>
+                        <input type="email" name="email" required />
+                        <label>Temporary Password</label>
+                        <input type="text" name="password" required />
+                        <label>Role</label>
+                        <select name="role">
+                            <option value="student">Student</option>
+                            <option value="user">User</option>
+                        </select>
+                        <button class="primary" type="submit">Add User</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>Users</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Submissions Tab -->
+            <div id="submissions-tab" class="tab-content">
+                <div class="card">
+                    <h2>Exam Submissions</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Exam</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                            </tr>
+                        </thead>
+                        <tbody id="submissions-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Offline Sites Tab -->
+            <div id="sites-tab" class="tab-content">
+                <div class="card">
+                    <h2>Add Offline Site</h2>
+                    <form id="create-site-form">
+                        <div class="grid two">
+                            <div>
+                                <label>Site Name (English)</label>
+                                <input type="text" name="name" required />
+                            </div>
+                            <div>
+                                <label>Site Name (Arabic)</label>
+                                <input type="text" name="nameAr" required />
+                            </div>
+                        </div>
+                        <label>Address</label>
+                        <input type="text" name="address" required />
+                        <div class="grid two">
+                            <div>
+                                <label>City</label>
+                                <input type="text" name="city" required />
+                            </div>
+                            <div>
+                                <label>Phone</label>
+                                <input type="tel" name="phone" required />
+                            </div>
+                        </div>
+                        <label>Email</label>
+                        <input type="email" name="email" />
+                        <label>Google Maps Link</label>
+                        <input type="url" name="mapLink" placeholder="https://maps.google.com/..." />
+                        <label>
+                            <input type="checkbox" name="isActive" checked />
+                            Active
+                        </label>
+                        <button class="primary" type="submit">Add Offline Site</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>Offline Sites</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Name (Arabic)</th>
+                                <th>City</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sites-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/admin-dashboard.js"></script>
+</body>
+</html>

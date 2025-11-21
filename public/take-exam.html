@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Take Exam - IATD Academy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; }
+        
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { background: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        
+        h1 { color: #2563eb; margin-bottom: 0.5rem; font-size: 2rem; }
+        .subtitle { color: #64748b; margin-bottom: 2rem; }
+        
+        h2 { color: #1e293b; margin-bottom: 1rem; font-size: 1.5rem; }
+        .exam-meta { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .badge { background: #e0e7ff; color: #3730a3; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; }
+        
+        .question-box { background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border-left: 4px solid #2563eb; }
+        .question-box h4 { color: #1e293b; margin-bottom: 1rem; font-size: 1.1rem; }
+        .question-box p { color: #475569; margin-bottom: 1rem; font-size: 1.05rem; line-height: 1.6; }
+        
+        .option-label { display: block; padding: 0.75rem 1rem; margin-bottom: 0.5rem; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .option-label:hover { border-color: #2563eb; background: #eff6ff; }
+        .option-label input { margin-right: 0.75rem; }
+        .option-label input:checked + span { font-weight: 600; color: #2563eb; }
+        
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: #475569; font-weight: 600; }
+        .form-group input { width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; }
+        .form-group input:focus { outline: none; border-color: #2563eb; }
+        
+        .btn { padding: 1rem 2rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1.1rem; transition: all 0.3s; width: 100%; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
+        
+        .error { color: #dc2626; background: #fee2e2; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+        .success { color: #16a34a; background: #dcfce7; padding: 1.5rem; border-radius: 8px; text-align: center; }
+        .success h3 { margin-bottom: 0.5rem; font-size: 1.5rem; }
+        
+        .timer { position: fixed; top: 2rem; right: 2rem; background: white; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-weight: 600; color: #2563eb; font-size: 1.2rem; }
+        
+        .loading { text-align: center; padding: 3rem; color: #64748b; }
+    </style>
+</head>
+<body>
+    <div class="timer" id="timer" style="display: none;"></div>
+    
+    <div class="container">
+        <div class="card">
+            <h1>🎓 IATD Academy</h1>
+            <p class="subtitle">الأكاديمية الدولية للتدريب والتنمية</p>
+            <div id="exam-content" class="loading">
+                <p>Loading exam...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        let examData = null;
+        let startTime = null;
+        let timerInterval = null;
+
+        if (!token) {
+            document.getElementById('exam-content').innerHTML = '<div class="error">❌ Invalid exam link. Please check the URL and try again.</div>';
+        } else {
+            loadExam(token);
+        }
+
+        async function loadExam(token) {
+            try {
+                const res = await fetch(`${API_BASE}/exams/public/${token}`);
+                
+                if (!res.ok) {
+                    document.getElementById('exam-content').innerHTML = '<div class="error">❌ Exam not found or has expired.</div>';
+                    return;
+                }
+                
+                examData = await res.json();
+                startTime = Date.now();
+                
+                // Start timer if duration is set
+                if (examData.duration) {
+                    startTimer(examData.duration);
+                }
+                
+                displayExam(examData);
+                
+            } catch (err) {
+                document.getElementById('exam-content').innerHTML = '<div class="error">❌ Error loading exam. Please try again later.</div>';
+                console.error('Error:', err);
+            }
+        }
+
+        function startTimer(durationMinutes) {
+            const timerEl = document.getElementById('timer');
+            timerEl.style.display = 'block';
+            
+            let timeLeft = durationMinutes * 60; // Convert to seconds
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                timerEl.textContent = `⏱️ ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert('Time is up! The exam will be submitted automatically.');
+                    document.getElementById('exam-form').dispatchEvent(new Event('submit'));
+                }
+            }, 1000);
+        }
+
+        function displayExam(exam) {
+            let html = `
+                <h2>${exam.title}</h2>
+                ${exam.description ? `<p style="color: #64748b; margin-bottom: 1.5rem;">${exam.description}</p>` : ''}
+                
+                <div class="exam-meta">
+                    <span class="badge">📝 ${exam.questions.length} Questions</span>
+                    ${exam.duration ? `<span class="badge">⏱️ ${exam.duration} Minutes</span>` : ''}
+                    ${exam.passingScore ? `<span class="badge">✅ Pass: ${exam.passingScore}%</span>` : ''}
+                </div>
+                
+                <form id="exam-form">
+            `;
+            
+            exam.questions.forEach((q, idx) => {
+                html += `
+                    <div class="question-box">
+                        <h4>Question ${idx + 1}</h4>
+                        <p>${q.prompt}</p>
+                        ${q.options.map((opt, optIdx) => `
+                            <label class="option-label">
+                                <input type="radio" name="q${idx}" value="${optIdx}" required />
+                                <span>${opt}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+            });
+            
+            // Add anonymous user fields if allowed
+            if (exam.allowAnonymous) {
+                html += `
+                    <div style="background: #eff6ff; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                        <h4 style="color: #1e293b; margin-bottom: 1rem;">Your Information</h4>
+                        <div class="form-group">
+                            <label>Your Name *</label>
+                            <input type="text" id="userName" required placeholder="Enter your full name" />
+                        </div>
+                        <div class="form-group">
+                            <label>Your Email *</label>
+                            <input type="email" id="userEmail" required placeholder="Enter your email" />
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `
+                    <button class="btn btn-primary" type="submit">Submit Exam</button>
+                </form>
+            `;
+            
+            document.getElementById('exam-content').innerHTML = html;
+            
+            // Add form submit handler
+            document.getElementById('exam-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await submitExam();
+            });
+        }
+
+        async function submitExam() {
+            if (!confirm('Are you sure you want to submit your exam? You cannot change your answers after submission.')) {
+                return;
+            }
+
+            // Collect answers
+            const answers = [];
+            for (let i = 0; i < examData.questions.length; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                if (!selected) {
+                    alert(`Please answer question ${i + 1}`);
+                    return;
+                }
+                answers.push(parseInt(selected.value));
+            }
+            
+            const submitData = { answers };
+            
+            // Add anonymous user info if required
+            if (examData.allowAnonymous) {
+                const userName = document.getElementById('userName').value;
+                const userEmail = document.getElementById('userEmail').value;
+                
+                if (!userName || !userEmail) {
+                    alert('Please provide your name and email');
+                    return;
+                }
+                
+                submitData.userName = userName;
+                submitData.userEmail = userEmail;
+            }
+            
+            try {
+                const submitRes = await fetch(`${API_BASE}/exams/public/${token}/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(submitData)
+                });
+                
+                const result = await submitRes.json();
+                
+                if (submitRes.ok) {
+                    // Clear timer
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        document.getElementById('timer').style.display = 'none';
+                    }
+                    
+                    // Display results
+                    const passedClass = result.passed ? 'success' : 'error';
+                    const passedIcon = result.passed ? '✅' : '❌';
+                    const passedText = result.passed ? 'PASSED' : 'FAILED';
+                    
+                    document.getElementById('exam-content').innerHTML = `
+                        <div class="${passedClass}">
+                            <h3>${passedIcon} Exam Submitted Successfully!</h3>
+                            <p style="font-size: 1.2rem; margin: 1rem 0;">
+                                <strong>Score:</strong> ${result.score} / ${result.total}<br>
+                                <strong>Percentage:</strong> ${result.percentage}%<br>
+                                <strong>Status:</strong> ${passedText}
+                            </p>
+                            ${result.passed ? 
+                                '<p>🎉 Congratulations! You have passed the exam.</p>' : 
+                                '<p>Keep learning and try again!</p>'
+                            }
+                        </div>
+                    `;
+                } else {
+                    alert(result.message || 'Failed to submit exam. Please try again.');
+                }
+                
+            } catch (err) {
+                alert('Error submitting exam: ' + err.message);
+                console.error('Error:', err);
+            }
+        }
+    </script>
+</body>
+</html>

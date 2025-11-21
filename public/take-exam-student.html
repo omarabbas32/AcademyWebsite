@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Take Exam - IATD Academy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; }
+        
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.2); margin-bottom: 2rem; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        h1 { color: #2563eb; font-size: 2rem; }
+        .subtitle { color: #64748b; margin-bottom: 2rem; }
+        
+        h2 { color: #1e293b; margin-bottom: 1rem; font-size: 1.5rem; }
+        .exam-meta { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .badge { background: #e0e7ff; color: #3730a3; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600; }
+        
+        .question-box { background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border-left: 4px solid #2563eb; }
+        .question-box h4 { color: #1e293b; margin-bottom: 1rem; font-size: 1.1rem; }
+        .question-box p { color: #475569; margin-bottom: 1rem; font-size: 1.05rem; line-height: 1.6; }
+        
+        .option-label { display: block; padding: 0.75rem 1rem; margin-bottom: 0.5rem; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .option-label:hover { border-color: #2563eb; background: #eff6ff; }
+        .option-label input { margin-right: 0.75rem; cursor: pointer; }
+        .option-label input:checked ~ span { font-weight: 600; color: #2563eb; }
+        
+        .btn { padding: 1rem 2rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1.1rem; transition: all 0.3s; }
+        .btn-primary { background: #2563eb; color: white; width: 100%; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-secondary:hover { background: #475569; }
+        
+        .error { color: #dc2626; background: #fee2e2; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+        .success { color: #16a34a; background: #dcfce7; padding: 1.5rem; border-radius: 8px; text-align: center; }
+        .success h3 { margin-bottom: 0.5rem; font-size: 1.5rem; }
+        
+        .timer { position: fixed; top: 2rem; right: 2rem; background: white; padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-weight: 600; color: #2563eb; font-size: 1.2rem; z-index: 100; }
+        .timer.warning { color: #dc2626; animation: pulse 1s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .loading { text-align: center; padding: 3rem; color: #64748b; }
+        .progress-bar { background: #e2e8f0; height: 8px; border-radius: 4px; margin-bottom: 2rem; overflow: hidden; }
+        .progress-fill { background: #2563eb; height: 100%; transition: width 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="timer" id="timer" style="display: none;"></div>
+    
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <div>
+                    <h1>🎓 IATD Academy</h1>
+                    <p class="subtitle">الأكاديمية الدولية للتدريب والتنمية</p>
+                </div>
+                <button class="btn btn-secondary" onclick="goBack()">← Back to Dashboard</button>
+            </div>
+            
+            <div id="exam-content" class="loading">
+                <p>Loading exam...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        const urlParams = new URLSearchParams(window.location.search);
+        const examId = urlParams.get('id');
+        
+        let examData = null;
+        let startTime = null;
+        let timerInterval = null;
+        let answeredQuestions = 0;
+
+        if (!examId) {
+            document.getElementById('exam-content').innerHTML = '<div class="error">❌ No exam specified. Please select an exam from the dashboard.</div>';
+        } else {
+            loadExam(examId);
+        }
+
+        function goBack() {
+            if (confirm('Are you sure you want to leave? Your progress will be lost.')) {
+                window.location.href = '/user-dashboard.html';
+            }
+        }
+
+        async function loadExam(examId) {
+            try {
+                const res = await fetch(`${API_BASE}/exams/published`);
+                
+                if (!res.ok) {
+                    if (res.status === 403) {
+                        document.getElementById('exam-content').innerHTML = '<div class="error">❌ You need to enroll in a course to access exams.</div>';
+                    } else {
+                        document.getElementById('exam-content').innerHTML = '<div class="error">❌ Failed to load exam. Please try again.</div>';
+                    }
+                    return;
+                }
+                
+                const exams = await res.json();
+                examData = exams.find(e => e._id === examId);
+                
+                if (!examData) {
+                    document.getElementById('exam-content').innerHTML = '<div class="error">❌ Exam not found.</div>';
+                    return;
+                }
+                
+                startTime = Date.now();
+                
+                // Start timer if duration is set
+                if (examData.duration) {
+                    startTimer(examData.duration);
+                }
+                
+                displayExam(examData);
+                
+            } catch (err) {
+                document.getElementById('exam-content').innerHTML = '<div class="error">❌ Error loading exam. Please try again later.</div>';
+                console.error('Error:', err);
+            }
+        }
+
+        function startTimer(durationMinutes) {
+            const timerEl = document.getElementById('timer');
+            timerEl.style.display = 'block';
+            
+            let timeLeft = durationMinutes * 60; // Convert to seconds
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                timerEl.textContent = `⏱️ ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Warning when less than 2 minutes
+                if (timeLeft <= 120) {
+                    timerEl.classList.add('warning');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert('Time is up! The exam will be submitted automatically.');
+                    document.getElementById('exam-form').dispatchEvent(new Event('submit'));
+                }
+            }, 1000);
+        }
+
+        function displayExam(exam) {
+            let html = `
+                <h2>${exam.title}</h2>
+                ${exam.description ? `<p style="color: #64748b; margin-bottom: 1.5rem;">${exam.description}</p>` : ''}
+                
+                <div class="exam-meta">
+                    <span class="badge">📝 ${exam.questions.length} Questions</span>
+                    ${exam.duration ? `<span class="badge">⏱️ ${exam.duration} Minutes</span>` : ''}
+                    ${exam.passingScore ? `<span class="badge">✅ Pass: ${exam.passingScore}%</span>` : ''}
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+                
+                <form id="exam-form">
+            `;
+            
+            exam.questions.forEach((q, idx) => {
+                html += `
+                    <div class="question-box">
+                        <h4>Question ${idx + 1}</h4>
+                        <p>${q.prompt}</p>
+                        ${q.options.map((opt, optIdx) => `
+                            <label class="option-label">
+                                <input type="radio" name="q${idx}" value="${optIdx}" onchange="updateProgress()" required />
+                                <span>${opt}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+            });
+            
+            html += `
+                    <button class="btn btn-primary" type="submit">Submit Exam</button>
+                </form>
+            `;
+            
+            document.getElementById('exam-content').innerHTML = html;
+            
+            // Add form submit handler
+            document.getElementById('exam-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await submitExam();
+            });
+        }
+
+        function updateProgress() {
+            const totalQuestions = examData.questions.length;
+            answeredQuestions = 0;
+            
+            for (let i = 0; i < totalQuestions; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                if (selected) answeredQuestions++;
+            }
+            
+            const percentage = (answeredQuestions / totalQuestions) * 100;
+            document.getElementById('progress-fill').style.width = percentage + '%';
+        }
+
+        async function submitExam() {
+            // Check all questions answered
+            const totalQuestions = examData.questions.length;
+            for (let i = 0; i < totalQuestions; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                if (!selected) {
+                    alert(`Please answer question ${i + 1}`);
+                    return;
+                }
+            }
+
+            if (!confirm('Are you sure you want to submit your exam? You cannot change your answers after submission.')) {
+                return;
+            }
+
+            // Collect answers
+            const answers = [];
+            for (let i = 0; i < totalQuestions; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                answers.push(parseInt(selected.value));
+            }
+            
+            try {
+                const submitRes = await fetch(`${API_BASE}/exams/${examData._id}/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ answers })
+                });
+                
+                const result = await submitRes.json();
+                
+                if (submitRes.ok) {
+                    // Clear timer
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        document.getElementById('timer').style.display = 'none';
+                    }
+                    
+                    // Display results
+                    const passedClass = result.passed ? 'success' : 'error';
+                    const passedIcon = result.passed ? '✅' : '❌';
+                    const passedText = result.passed ? 'PASSED' : 'FAILED';
+                    
+                    document.getElementById('exam-content').innerHTML = `
+                        <div class="${passedClass}">
+                            <h3>${passedIcon} Exam Submitted Successfully!</h3>
+                            <p style="font-size: 1.2rem; margin: 1rem 0;">
+                                <strong>Score:</strong> ${result.score} / ${result.total}<br>
+                                <strong>Percentage:</strong> ${result.percentage}%<br>
+                                <strong>Status:</strong> ${passedText}
+                            </p>
+                            ${result.passed ? 
+                                '<p>🎉 Congratulations! You have passed the exam.</p>' : 
+                                '<p>Keep learning and try again!</p>'
+                            }
+                            <button class="btn btn-primary" onclick="window.location.href='/user-dashboard.html'" style="margin-top: 1rem;">
+                                Back to Dashboard
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    alert(result.message || 'Failed to submit exam. Please try again.');
+                }
+                
+            } catch (err) {
+                alert('Error submitting exam: ' + err.message);
+                console.error('Error:', err);
+            }
+        }
+    </script>
+</body>
+</html>

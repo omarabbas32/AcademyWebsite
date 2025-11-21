@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IATD Student Dashboard - الأكاديمية الدولية للتدريب والتنمية</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        
+        /* Header */
+        .header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 1400px; margin: 0 auto; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo { display: flex; flex-direction: column; }
+        .logo h1 { color: #2563eb; font-size: 1.8rem; margin-bottom: 0.25rem; }
+        .logo p { color: #64748b; font-size: 0.9rem; }
+        .user-info { display: flex; gap: 1rem; align-items: center; }
+        .user-badge { background: #e0e7ff; color: #3730a3; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-secondary:hover { background: #475569; }
+        
+        /* Container */
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        
+        /* Login Card */
+        .login-card { max-width: 450px; margin: 4rem auto; background: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .login-card h2 { color: #1e293b; margin-bottom: 1.5rem; text-align: center; }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: #475569; font-weight: 600; }
+        .form-group input { width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; }
+        .form-group input:focus { outline: none; border-color: #2563eb; }
+        .btn-primary { background: #2563eb; color: white; width: 100%; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
+        
+        /* Dashboard */
+        .dashboard { display: none; }
+        .dashboard.active { display: block; }
+        
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .stat-card h3 { color: #64748b; font-size: 0.9rem; margin-bottom: 0.5rem; text-transform: uppercase; }
+        .stat-card .value { color: #1e293b; font-size: 2rem; font-weight: 700; }
+        .stat-card .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; background: white; padding: 1rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-wrap: wrap; }
+        .tab-btn { padding: 0.75rem 1.5rem; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-weight: 600; color: #64748b; transition: all 0.3s; }
+        .tab-btn.active { background: #2563eb; color: white; }
+        .tab-btn:hover:not(.active) { background: #f1f5f9; }
+        
+        /* Tab Content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Section */
+        .section { background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .section h2 { color: #1e293b; margin-bottom: 1.5rem; font-size: 1.5rem; }
+        
+        /* Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        
+        /* Card */
+        .card-item { background: #f8fafc; border-radius: 12px; padding: 1.5rem; transition: all 0.3s; border: 2px solid transparent; }
+        .card-item:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); border-color: #2563eb; }
+        .card-item img { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem; }
+        .card-item h3 { color: #1e293b; margin-bottom: 0.5rem; font-size: 1.2rem; }
+        .card-item p { color: #64748b; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem; }
+        .card-item .meta { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .badge { background: #e0e7ff; color: #3730a3; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        .badge.enrolled { background: #dcfce7; color: #166534; }
+        .badge.passed { background: #dcfce7; color: #166534; }
+        .badge.failed { background: #fee2e2; color: #991b1b; }
+        
+        /* Buttons */
+        .card-btn { padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.3s; }
+        .card-btn.primary { background: #2563eb; color: white; }
+        .card-btn.primary:hover { background: #1d4ed8; }
+        .card-btn.success { background: #16a34a; color: white; }
+        .card-btn.success:hover { background: #15803d; }
+        .card-btn.disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
+        
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; color: #475569; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+        
+        /* Empty State */
+        .empty-state { text-align: center; padding: 3rem; color: #64748b; }
+        .empty-state .icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+        
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>🎓 IATD Student Dashboard</h1>
+                <p>الأكاديمية الدولية للتدريب والتنمية</p>
+            </div>
+            <div class="user-info" id="user-info" style="display: none;">
+                <span class="user-badge" id="user-name"></span>
+                <span class="user-badge" id="user-role"></span>
+                <button class="btn btn-secondary" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Card -->
+    <div id="login-section">
+        <div class="login-card">
+            <h2>Login to Your Dashboard</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Email or Username</label>
+                    <input type="text" name="email" required placeholder="Enter your email or username" />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" required placeholder="Enter your password" />
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+            <p style="text-align: center; margin-top: 1rem; color: #64748b;">
+                Don't have an account? <a href="#" onclick="showRegister(); return false;" style="color: #2563eb; font-weight: 600;">Register here</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Register Card -->
+    <div id="register-section" class="hidden">
+        <div class="login-card">
+            <h2>Create Your Account</h2>
+            <form id="register-form">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="name" required placeholder="Enter your full name" />
+                </div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" required placeholder="Choose a username" />
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" required placeholder="Enter your email" />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" required placeholder="Choose a password" />
+                </div>
+                <button type="submit" class="btn btn-primary">Register</button>
+            </form>
+            <p style="text-align: center; margin-top: 1rem; color: #64748b;">
+                Already have an account? <a href="#" onclick="showLogin(); return false;" style="color: #2563eb; font-weight: 600;">Login here</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard-section" class="dashboard">
+        <div class="container">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon">📚</div>
+                    <h3>Enrolled Courses</h3>
+                    <div class="value" id="stat-courses">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">📝</div>
+                    <h3>Exams Taken</h3>
+                    <div class="value" id="stat-exams">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">✅</div>
+                    <h3>Exams Passed</h3>
+                    <div class="value" id="stat-passed">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">📊</div>
+                    <h3>Average Score</h3>
+                    <div class="value" id="stat-average">0%</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('courses')">📚 All Courses</button>
+                <button class="tab-btn" onclick="switchTab('enrolled')">✅ My Courses</button>
+                <button class="tab-btn" onclick="switchTab('exams')">📝 Available Exams</button>
+                <button class="tab-btn" onclick="switchTab('submissions')">📊 My Results</button>
+            </div>
+
+            <!-- All Courses Tab -->
+            <div id="courses-tab" class="tab-content active">
+                <div class="section">
+                    <h2>Available Courses</h2>
+                    <div class="grid" id="courses-grid"></div>
+                </div>
+            </div>
+
+            <!-- My Courses Tab -->
+            <div id="enrolled-tab" class="tab-content">
+                <div class="section">
+                    <h2>My Enrolled Courses</h2>
+                    <div class="grid" id="enrolled-grid"></div>
+                </div>
+            </div>
+
+            <!-- Exams Tab -->
+            <div id="exams-tab" class="tab-content">
+                <div class="section">
+                    <h2>Available Exams</h2>
+                    <div class="grid" id="exams-grid"></div>
+                </div>
+            </div>
+
+            <!-- Submissions Tab -->
+            <div id="submissions-tab" class="tab-content">
+                <div class="section">
+                    <h2>My Exam Results</h2>
+                    <table id="submissions-table">
+                        <thead>
+                            <tr>
+                                <th>Exam</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/user-dashboard.js"></script>
+</body>
+</html>

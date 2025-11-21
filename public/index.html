@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IATD Academy - الأكاديمية الدولية للتدريب والتنمية</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        
+        /* Header */
+        .header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo { display: flex; flex-direction: column; }
+        .logo h1 { color: #2563eb; font-size: 1.8rem; margin-bottom: 0.25rem; }
+        .logo p { color: #64748b; font-size: 0.9rem; }
+        .auth-buttons { display: flex; gap: 1rem; align-items: center; }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
+        .btn-secondary { background: transparent; color: #2563eb; border: 2px solid #2563eb; }
+        .btn-secondary:hover { background: #2563eb; color: white; }
+        
+        /* Hero Section */
+        .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4rem 2rem; text-align: center; }
+        .hero h2 { font-size: 2.5rem; margin-bottom: 1rem; }
+        .hero p { font-size: 1.2rem; opacity: 0.95; max-width: 700px; margin: 0 auto; }
+        
+        /* Container */
+        .container { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; }
+        
+        /* Section */
+        .section { background: white; border-radius: 16px; padding: 2.5rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .section h2 { color: #1e293b; margin-bottom: 1.5rem; font-size: 2rem; display: flex; align-items: center; gap: 0.5rem; }
+        
+        /* Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+        
+        /* Card */
+        .card-item { background: #f8fafc; border-radius: 12px; padding: 1.5rem; transition: all 0.3s; border: 2px solid transparent; }
+        .card-item:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); border-color: #2563eb; }
+        .card-item img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem; }
+        .card-item h3 { color: #1e293b; margin-bottom: 0.5rem; font-size: 1.3rem; }
+        .card-item p { color: #64748b; font-size: 0.95rem; line-height: 1.6; }
+        .card-item .meta { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+        .card-item .badge { background: #e0e7ff; color: #3730a3; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        
+        /* Team Member Card */
+        .team-card { text-align: center; }
+        .team-card img { width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 1rem; object-fit: cover; }
+        .team-card h3 { font-size: 1.2rem; margin-bottom: 0.25rem; }
+        .team-card p { color: #2563eb; font-weight: 600; }
+        
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 16px; padding: 2.5rem; max-width: 450px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 2rem; cursor: pointer; color: #64748b; }
+        .modal h2 { margin-bottom: 1.5rem; color: #1e293b; }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: #475569; font-weight: 600; }
+        .form-group input { width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; }
+        .form-group input:focus { outline: none; border-color: #2563eb; }
+        
+        /* Footer */
+        .footer { background: #1e293b; color: white; text-align: center; padding: 2rem; margin-top: 3rem; }
+        
+        /* Locked overlay */
+        .locked-overlay { position: relative; }
+        .locked-overlay::after { content: '🔒 Login Required'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(37, 99, 235, 0.95); color: white; padding: 1rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1.1rem; pointer-events: none; }
+        .locked-overlay .grid { filter: blur(4px); pointer-events: none; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>🎓 IATD Academy</h1>
+                <p>الأكاديمية الدولية للتدريب والتنمية</p>
+            </div>
+            <div class="auth-buttons">
+                <button class="btn btn-secondary" onclick="openModal('login')">Login</button>
+                <button class="btn btn-primary" onclick="openModal('register')">Register</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <h2>Welcome to IATD Academy</h2>
+        <p>International Academy for Training and Development - Your gateway to professional excellence and continuous learning</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Team Members Section -->
+        <div class="section">
+            <h2>👥 Our Team</h2>
+            <div class="grid" id="team-grid">
+                <p style="color: #64748b;">Loading team members...</p>
+            </div>
+        </div>
+
+        <!-- Courses Section -->
+        <div class="section">
+            <h2>📚 Our Courses</h2>
+            <div class="grid" id="courses-grid">
+                <p style="color: #64748b;">Loading courses...</p>
+            </div>
+        </div>
+
+        <!-- Offline Sites Section -->
+        <div class="section">
+            <h2>📍 Our Locations</h2>
+            <div class="grid" id="sites-grid">
+                <p style="color: #64748b;">Loading locations...</p>
+            </div>
+        </div>
+
+        <!-- Exams Section (Locked) -->
+        <div class="section locked-overlay">
+            <h2>📝 Available Exams</h2>
+            <div class="grid" id="exams-grid">
+                <div class="card-item">
+                    <h3>Sample Exam 1</h3>
+                    <p>This is a sample exam. Login to view available exams.</p>
+                </div>
+                <div class="card-item">
+                    <h3>Sample Exam 2</h3>
+                    <p>This is a sample exam. Login to view available exams.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>&copy; 2024 IATD Academy - الأكاديمية الدولية للتدريب والتنمية</p>
+        <p>International Academy for Training and Development</p>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('login')">&times;</button>
+            <h2>Login to IATD Academy</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Email or Username</label>
+                    <input type="text" name="email" required placeholder="Enter your email or username" />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" required placeholder="Enter your password" />
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            </form>
+            <p style="text-align: center; margin-top: 1rem; color: #64748b;">
+                Don't have an account? <a href="#" onclick="closeModal('login'); openModal('register'); return false;" style="color: #2563eb; font-weight: 600;">Register here</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('register')">&times;</button>
+            <h2>Register for IATD Academy</h2>
+            <form id="register-form">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="name" required placeholder="Enter your full name" />
+                </div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" required placeholder="Choose a username" />
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" required placeholder="Enter your email" />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" required placeholder="Choose a password" />
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+            </form>
+            <p style="text-align: center; margin-top: 1rem; color: #64748b;">
+                Already have an account? <a href="#" onclick="closeModal('register'); openModal('login'); return false;" style="color: #2563eb; font-weight: 600;">Login here</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        // Modal functions
+        function openModal(type) {
+            document.getElementById(`${type}-modal`).classList.add('active');
+        }
+
+        function closeModal(type) {
+            document.getElementById(`${type}-modal`).classList.remove('active');
+        }
+
+        // Close modal on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        // Login form
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    alert('Login successful! Redirecting to dashboard...');
+                    window.location.href = '/user-dashboard.html';
+                } else {
+                    alert(result.message || 'Login failed');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        // Register form
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const res = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    alert('Registration successful! You can now login.');
+                    closeModal('register');
+                    openModal('login');
+                    document.getElementById('register-form').reset();
+                } else {
+                    alert(result.message || 'Registration failed');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        // Load team members
+        async function loadTeam() {
+            try {
+                const res = await fetch(`${API_BASE}/team-members`);
+                const members = await res.json();
+
+                const grid = document.getElementById('team-grid');
+                if (members.length === 0) {
+                    grid.innerHTML = '<p style="color: #64748b;">No team members yet.</p>';
+                    return;
+                }
+
+                grid.innerHTML = members.map(member => `
+                    <div class="card-item team-card">
+                        <img src="${member.imagePath}" alt="${member.name}" />
+                        <h3>${member.name}</h3>
+                        <p>${member.jobTitle}</p>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading team:', err);
+            }
+        }
+
+        // Load courses
+        async function loadCourses() {
+            try {
+                const res = await fetch(`${API_BASE}/courses`);
+                const courses = await res.json();
+
+                const grid = document.getElementById('courses-grid');
+                if (courses.length === 0) {
+                    grid.innerHTML = '<p style="color: #64748b;">No courses available yet.</p>';
+                    return;
+                }
+
+                grid.innerHTML = courses.map(course => `
+                    <div class="card-item">
+                        ${course.imagePath ? `<img src="${course.imagePath}" alt="${course.name}" />` : ''}
+                        <h3>${course.name}</h3>
+                        <p>${course.description}</p>
+                        <div class="meta">
+                            <span class="badge">📅 ${course.duration}</span>
+                            <span class="badge">📊 ${course.level}</span>
+                            <span class="badge">👨‍🏫 ${course.instructor}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading courses:', err);
+            }
+        }
+
+        // Load offline sites
+        async function loadSites() {
+            try {
+                const res = await fetch(`${API_BASE}/offline-sites`);
+                const sites = await res.json();
+
+                const grid = document.getElementById('sites-grid');
+                if (sites.length === 0) {
+                    grid.innerHTML = '<p style="color: #64748b;">No locations available yet.</p>';
+                    return;
+                }
+
+                grid.innerHTML = sites.map(site => `
+                    <div class="card-item">
+                        <h3>${site.name}</h3>
+                        <p style="font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">${site.nameAr}</p>
+                        <p>📍 ${site.address}, ${site.city}</p>
+                        <p>📞 ${site.phone}</p>
+                        ${site.email ? `<p>✉️ ${site.email}</p>` : ''}
+                        ${site.mapLink ? `<a href="${site.mapLink}" target="_blank" class="btn btn-secondary" style="margin-top: 1rem; font-size: 0.9rem; padding: 0.5rem 1rem;">View on Map</a>` : ''}
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading sites:', err);
+            }
+        }
+
+        // Load all data on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadTeam();
+            loadCourses();
+            loadSites();
+        });
+    </script>
+</body>
+</html>
