@@ -266,75 +266,86 @@ exports.generatePrivateLink = async (req, res) => {
 };
 
 // GET exam by access token (Public - no auth)
+// GET exam by access token (Public - no auth)
 exports.getExamByToken = async (req, res) => {
     try {
         const { token } = req.params;
+        const exam = await Exam.findOne({ accessToken: token, isPrivate: true })
+            .populate('course', 'name instructor');
+        if (!exam) {
+            return res.status(404).json({ message: 'Invalid or expired exam link' });
+        }
+        res.json({
+            id: exam._id,
+            title: exam.title,
+            description: exam.description,
+            course: exam.course,
+            duration: exam.duration,
+            allowAnonymous: exam.allowAnonymous,
+            questions: exam.questions.map(q => ({
+                prompt: q.prompt,
+                options: q.options
+            }))
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
 
-        exports.submitPrivateExam = async (req, res) => {
-            try {
-                const { token } = req.params;
-                const { answers = [], userName, userEmail } = req.body;
-
-                const exam = await Exam.findOne({ accessToken: token, isPrivate: true });
-
-                if (!exam) {
-                    return res.status(404).json({ message: 'Invalid or expired exam link' });
-                }
-
-                if (!Array.isArray(answers) || answers.length !== exam.questions.length) {
-                    return res.status(400).json({
-                        message: 'Answers must be provided for every question'
-                    });
-                }
-
-                // Calculate score
-                let score = 0;
-                answers.forEach((selectedIndex, idx) => {
-                    if (exam.questions[idx].correctIndex === selectedIndex) {
-                        score += 1;
-                    }
-                });
-
-                const total = exam.questions.length;
-                const percentage = Math.round((score / total) * 100);
-                const passed = percentage >= (exam.passingScore || 60);
-
-                // For anonymous submissions, create a temporary user or store differently
-                let submissionData = {
-                    exam: exam._id,
-                    answers: answers.map((selectedIndex, idx) => ({
-                        questionIndex: idx,
-                        selectedIndex
-                    })),
-                    score,
-                    total,
-                    percentage,
-                    passed
-                };
-
-                // If anonymous allowed and no user session, store with provided info
-                if (exam.allowAnonymous && !req.session?.userId) {
-                    // Create anonymous submission (you might want to extend Submission model)
-                    submissionData.user = null; // Or create anonymous user
-                    submissionData.anonymousName = userName;
-                    submissionData.anonymousEmail = userEmail;
-                } else if (req.session?.userId) {
-                    submissionData.user = req.session.userId;
-                } else {
-                    return res.status(401).json({ message: 'Authentication required for this exam' });
-                }
-
-                const submission = await Submission.create(submissionData);
-
-                res.status(201).json({
-                    message: 'Exam submitted successfully',
-                    score,
-                    total,
-                    percentage,
-                    passed,
-                    submissionId: submission._id
-                });
-            } catch (err) {
-                res.status(500).json({ message: err.message });
+// SUBMIT private exam answers (Public - no auth)
+exports.submitPrivateExam = async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { answers = [], userName, userEmail } = req.body;
+        const exam = await Exam.findOne({ accessToken: token, isPrivate: true });
+        if (!exam) {
+            return res.status(404).json({ message: 'Invalid or expired exam link' });
+        }
+        if (!Array.isArray(answers) || answers.length !== exam.questions.length) {
+            return res.status(400).json({ message: 'Answers must be provided for every question' });
+        }
+        // Calculate score
+        let score = 0;
+        answers.forEach((selectedIndex, idx) => {
+            if (exam.questions[idx].correctIndex === selectedIndex) {
+                score += 1;
             }
+        });
+        const total = exam.questions.length;
+        const percentage = Math.round((score / total) * 100);
+        const passed = percentage >= (exam.passingScore || 60);
+        // For anonymous submissions, create a temporary user or store differently
+        let submissionData = {
+            exam: exam._id,
+            answers: answers.map((selectedIndex, idx) => ({
+                questionIndex: idx,
+                selectedIndex
+            })),
+            score,
+            total,
+            percentage,
+            passed
         };
+        // If anonymous allowed and no user session, store with provided info
+        if (exam.allowAnonymous && !req.session?.userId) {
+            submissionData.user = null;
+            submissionData.anonymousName = userName;
+            submissionData.anonymousEmail = userEmail;
+        } else if (req.session?.userId) {
+            submissionData.user = req.session.userId;
+        } else {
+            return res.status(401).json({ message: 'Authentication required for this exam' });
+        }
+        const submission = await Submission.create(submissionData);
+        res.status(201).json({
+            message: 'Exam submitted successfully',
+            score,
+            total,
+            percentage,
+            passed,
+            submissionId: submission._id
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
