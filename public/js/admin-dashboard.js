@@ -1,9 +1,7 @@
 // Admin Dashboard JavaScript
 
 // Auto-detect environment
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? '/api'
-    : 'https://academy-website-test.vercel.app/api';
+const API_BASE = '/api';
 let questionCount = 0;
 
 // Tab switching
