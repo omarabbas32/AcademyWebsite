@@ -137,3 +137,6 @@ mongoose.connect(MONGO_URL)
         console.error('❌ Could not connect to MongoDB...', err);
         process.exit(1);
     });
+
+// Export for Vercel serverless
+module.exports = app;
