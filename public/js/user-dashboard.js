@@ -1,6 +1,6 @@
 // User Dashboard JavaScript
 
-const API_BASE = '/api';
+const API_BASE = 'https://academy-website-smoky.vercel.app/api';
 let currentUser = null;
 
 // Show/hide sections

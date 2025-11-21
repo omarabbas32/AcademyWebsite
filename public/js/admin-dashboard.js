@@ -1,6 +1,6 @@
 // Admin Dashboard JavaScript
 
-const API_BASE = '/api';
+const API_BASE = 'https://academy-website-smoky.vercel.app/api';
 let questionCount = 0;
 
 // Tab switching
