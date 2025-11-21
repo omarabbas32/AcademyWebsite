@@ -25,7 +25,6 @@ app.use(
         secret: process.env.SESSION_SECRET || 'academy_secret_key_change_in_production',
         resave: false,
         saveUninitialized: false,
-        store: require('connect-mongo').create({ mongoUrl: process.env.MONGO_URL }),
         cookie: {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -40,7 +39,7 @@ const serviceRoutes = require('./src/routes/serviceRoutes');
 const courseRoutes = require('./src/routes/courseRoutes');
 const contactInfoRoutes = require('./src/routes/contactInfoRoutes');
 const teamMemberRoutes = require('./src/routes/teamMemberRoutes');
-const aboutUsRoutes = require('./src/routes/aboutUsRoutes.js'); // Fixed case sensitivity
+const aboutUsRoutes = require('./src/routes/aboutusRoutes.js');
 const emailRoutes = require('./src/routes/emailRoutes');
 const examRoutes = require('./src/routes/examRoutes');
 const offlineSiteRoutes = require('./src/routes/offlineSiteRoutes');
@@ -75,13 +74,7 @@ app.get('/health', (req, res) => {
     res.json({
         status: 'OK',
         message: 'IATD Academy Server is running',
-        timestamp: new Date().toISOString(),
-        env: {
-            NODE_ENV: process.env.NODE_ENV,
-            MONGO_URL_SET: !!process.env.MONGO_URL,
-            SESSION_SECRET_SET: !!process.env.SESSION_SECRET,
-            ADMIN_EMAIL_SET: !!process.env.ADMIN_EMAIL
-        }
+        timestamp: new Date().toISOString()
     });
 });
 
@@ -141,14 +134,8 @@ mongoose.connect(MONGO_URL)
         });
     })
     .catch(err => {
-        console.error('❌ CRITICAL: Could not connect to MongoDB');
-        console.error('Error Name:', err.name);
-        console.error('Error Message:', err.message);
-        console.error('Full Error:', err);
-        // Do not exit process on Vercel, just log error so we can see it
-        if (process.env.NODE_ENV !== 'production') {
-            process.exit(1);
-        }
+        console.error('❌ Could not connect to MongoDB...', err);
+        process.exit(1);
     });
 
 // Export for Vercel serverless
