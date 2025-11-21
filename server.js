@@ -117,21 +117,24 @@ mongoose.connect(MONGO_URL)
         console.log('✓ Connected to MongoDB successfully!');
         console.log('=================================');
 
-        const server = app.listen(PORT, () => {
-            console.log(`✓ IATD Academy Server running on http://localhost:${PORT}`);
-            console.log(`✓ الأكاديمية الدولية للتدريب والتنمية`);
-            console.log(`✓ International Academy for Training and Development`);
-            console.log(`✓ Admin Dashboard: http://localhost:${PORT}/admin-dashboard.html`);
-            console.log(`✓ Student Dashboard: http://localhost:${PORT}/user-dashboard.html`);
-            console.log('=================================\n');
-        });
+        // Start the server only when running locally (Vercel provides its own handler)
+        if (!process.env.VERCEL) {
+            const server = app.listen(PORT, () => {
+                console.log(`✓ IATD Academy Server running on http://localhost:${PORT}`);
+                console.log(`✓ الأكاديمية الدولية للتدريب والتنمية`);
+                console.log(`✓ International Academy for Training and Development`);
+                console.log(`✓ Admin Dashboard: http://localhost:${PORT}/admin-dashboard.html`);
+                console.log(`✓ Student Dashboard: http://localhost:${PORT}/user-dashboard.html`);
+                console.log('=================================\n');
+            });
 
-        // Handle server errors
-        server.on('error', (err) => {
-            if (err.code !== 'ECONNRESET' && err.message !== 'aborted') {
-                console.error('Server error:', err);
-            }
-        });
+            // Handle server errors
+            server.on('error', (err) => {
+                if (err.code !== 'ECONNRESET' && err.message !== 'aborted') {
+                    console.error('Server error:', err);
+                }
+            });
+        }
     })
     .catch(err => {
         console.error('❌ Could not connect to MongoDB...', err);
