@@ -74,7 +74,13 @@ app.get('/health', (req, res) => {
     res.json({
         status: 'OK',
         message: 'IATD Academy Server is running',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        env: {
+            NODE_ENV: process.env.NODE_ENV,
+            MONGO_URL_SET: !!process.env.MONGO_URL,
+            SESSION_SECRET_SET: !!process.env.SESSION_SECRET,
+            ADMIN_EMAIL_SET: !!process.env.ADMIN_EMAIL
+        }
     });
 });
 
