@@ -134,8 +134,14 @@ mongoose.connect(MONGO_URL)
         });
     })
     .catch(err => {
-        console.error('❌ Could not connect to MongoDB...', err);
-        process.exit(1);
+        console.error('❌ CRITICAL: Could not connect to MongoDB');
+        console.error('Error Name:', err.name);
+        console.error('Error Message:', err.message);
+        console.error('Full Error:', err);
+        // Do not exit process on Vercel, just log error so we can see it
+        if (process.env.NODE_ENV !== 'production') {
+            process.exit(1);
+        }
     });
 
 // Export for Vercel serverless
