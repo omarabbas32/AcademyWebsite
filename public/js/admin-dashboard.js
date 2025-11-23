@@ -35,6 +35,7 @@ document.getElementById('admin-login-form')?.addEventListener('submit', async (e
         const res = await fetch(`${API_BASE}/auth/admin/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(data)
         });
 
@@ -55,7 +56,7 @@ document.getElementById('admin-login-form')?.addEventListener('submit', async (e
 // Logout
 async function logout() {
     try {
-        await fetch(`${API_BASE}/auth/admin/logout`, { method: 'POST' });
+        await fetch(`${API_BASE}/auth/admin/logout`, { method: 'POST', credentials: 'include' });
         location.reload();
     } catch (err) {
         console.error('Logout error:', err);
@@ -67,7 +68,7 @@ async function logout() {
 
 async function loadTeamMembers() {
     try {
-        const res = await fetch(`${API_BASE}/team-members`);
+        const res = await fetch(`${API_BASE}/team-members`, { credentials: 'include' });
         const members = await res.json();
 
         const tbody = document.getElementById('team-members-table');
@@ -93,6 +94,7 @@ document.getElementById('create-team-member-form')?.addEventListener('submit', a
     try {
         const res = await fetch(`${API_BASE}/team-members`, {
             method: 'POST',
+            credentials: 'include',
             body: formData
         });
 
@@ -113,7 +115,7 @@ async function deleteTeamMember(id) {
     if (!confirm('Are you sure you want to delete this team member?')) return;
 
     try {
-        const res = await fetch(`${API_BASE}/team-members/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_BASE}/team-members/${id}`, { method: 'DELETE', credentials: 'include' });
         if (res.ok) {
             alert('Team member deleted');
             loadTeamMembers();
@@ -127,7 +129,7 @@ async function deleteTeamMember(id) {
 
 async function loadCourses() {
     try {
-        const res = await fetch(`${API_BASE}/courses`);
+        const res = await fetch(`${API_BASE}/courses`, { credentials: 'include' });
         const courses = await res.json();
 
         const tbody = document.getElementById('courses-table');
@@ -154,6 +156,7 @@ document.getElementById('create-course-form')?.addEventListener('submit', async 
     try {
         const res = await fetch(`${API_BASE}/courses`, {
             method: 'POST',
+            credentials: 'include',
             body: formData
         });
 
@@ -174,7 +177,7 @@ async function deleteCourse(id) {
     if (!confirm('Are you sure you want to delete this course?')) return;
 
     try {
-        const res = await fetch(`${API_BASE}/courses/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_BASE}/courses/${id}`, { method: 'DELETE', credentials: 'include' });
         if (res.ok) {
             alert('Course deleted');
             loadCourses();
@@ -245,6 +248,7 @@ document.getElementById('create-exam-form')?.addEventListener('submit', async (e
         const res = await fetch(`${API_BASE}/exams`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(examData)
         });
 
@@ -265,7 +269,7 @@ document.getElementById('create-exam-form')?.addEventListener('submit', async (e
 
 async function loadExams() {
     try {
-        const res = await fetch(`${API_BASE}/exams/admin/all`);
+        const res = await fetch(`${API_BASE}/exams/admin/all`, { credentials: 'include' });
         const exams = await res.json();
 
         const tbody = document.getElementById('exams-table');
@@ -299,6 +303,7 @@ async function togglePublish(examId, publish) {
         const res = await fetch(`${API_BASE}/exams/${examId}/publish`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ isPublished: publish })
         });
 
@@ -314,7 +319,7 @@ async function deleteExam(id) {
     if (!confirm('Are you sure you want to delete this exam?')) return;
 
     try {
-        const res = await fetch(`${API_BASE}/exams/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_BASE}/exams/${id}`, { method: 'DELETE', credentials: 'include' });
         if (res.ok) {
             alert('Exam deleted');
             loadExams();
@@ -329,6 +334,7 @@ async function generatePrivateLink(examId) {
         const res = await fetch(`${API_BASE}/exams/${examId}/generate-link`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ allowAnonymous: true })
         });
 
@@ -375,7 +381,7 @@ function copyToClipboard(text) {
 
 async function loadUsers() {
     try {
-        const res = await fetch(`${API_BASE}/auth/admin/users`);
+        const res = await fetch(`${API_BASE}/auth/admin/users`, { credentials: 'include' });
         const users = await res.json();
 
         const tbody = document.getElementById('users-table');
@@ -401,6 +407,7 @@ document.getElementById('create-user-form')?.addEventListener('submit', async (e
         const res = await fetch(`${API_BASE}/auth/admin/users`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(data)
         });
 
@@ -421,7 +428,7 @@ document.getElementById('create-user-form')?.addEventListener('submit', async (e
 
 async function loadSubmissions() {
     try {
-        const res = await fetch(`${API_BASE}/exams/admin/submissions`);
+        const res = await fetch(`${API_BASE}/exams/admin/submissions`, { credentials: 'include' });
         const submissions = await res.json();
 
         const tbody = document.getElementById('submissions-table');
@@ -448,7 +455,7 @@ async function loadSubmissions() {
 
 async function loadOfflineSites() {
     try {
-        const res = await fetch(`${API_BASE}/offline-sites/admin/all`);
+        const res = await fetch(`${API_BASE}/offline-sites/admin/all`, { credentials: 'include' });
         const sites = await res.json();
 
         const tbody = document.getElementById('sites-table');
@@ -483,6 +490,7 @@ document.getElementById('create-site-form')?.addEventListener('submit', async (e
         const res = await fetch(`${API_BASE}/offline-sites`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(data)
         });
 
@@ -503,7 +511,7 @@ async function deleteOfflineSite(id) {
     if (!confirm('Are you sure you want to delete this offline site?')) return;
 
     try {
-        const res = await fetch(`${API_BASE}/offline-sites/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_BASE}/offline-sites/${id}`, { method: 'DELETE', credentials: 'include' });
         if (res.ok) {
             alert('Offline site deleted');
             loadOfflineSites();

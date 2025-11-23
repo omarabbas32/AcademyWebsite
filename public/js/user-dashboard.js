@@ -42,6 +42,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         const res = await fetch(`${API_BASE}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(data)
         });
 
@@ -68,6 +69,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
         const res = await fetch(`${API_BASE}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(data)
         });
 
@@ -101,7 +103,7 @@ function showDashboard() {
 // Logout
 async function logout() {
     try {
-        await fetch(`${API_BASE}/auth/logout`, { method: 'POST' });
+        await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
         location.reload();
     } catch (err) {
         console.error('Logout error:', err);
@@ -113,12 +115,12 @@ async function logout() {
 async function loadStats() {
     try {
         // Load enrolled courses count
-        const enrolledRes = await fetch(`${API_BASE}/courses/enrollments/my-courses`);
+        const enrolledRes = await fetch(`${API_BASE}/courses/enrollments/my-courses`, { credentials: 'include' });
         const enrolled = enrolledRes.ok ? await enrolledRes.json() : [];
         document.getElementById('stat-courses').textContent = enrolled.length;
 
         // Load submissions
-        const subRes = await fetch(`${API_BASE}/exams/submissions/me`);
+        const subRes = await fetch(`${API_BASE}/exams/submissions/me`, { credentials: 'include' });
         const submissions = subRes.ok ? await subRes.json() : [];
         document.getElementById('stat-exams').textContent = submissions.length;
 
@@ -137,7 +139,7 @@ async function loadStats() {
 // Load all courses
 async function loadCourses() {
     try {
-        const res = await fetch(`${API_BASE}/courses`);
+        const res = await fetch(`${API_BASE}/courses`, { credentials: 'include' });
         const courses = await res.json();
 
         const grid = document.getElementById('courses-grid');
@@ -167,7 +169,7 @@ async function loadCourses() {
 // Load enrolled courses
 async function loadEnrolledCourses() {
     try {
-        const res = await fetch(`${API_BASE}/courses/enrollments/my-courses`);
+        const res = await fetch(`${API_BASE}/courses/enrollments/my-courses`, { credentials: 'include' });
         const courses = await res.json();
 
         const grid = document.getElementById('enrolled-grid');
@@ -198,7 +200,8 @@ async function loadEnrolledCourses() {
 async function enrollInCourse(courseId) {
     try {
         const res = await fetch(`${API_BASE}/courses/${courseId}/enroll`, {
-            method: 'POST'
+            method: 'POST',
+            credentials: 'include'
         });
 
         const result = await res.json();
@@ -224,7 +227,7 @@ async function enrollInCourse(courseId) {
 // Load exams
 async function loadExams() {
     try {
-        const res = await fetch(`${API_BASE}/exams/published`);
+        const res = await fetch(`${API_BASE}/exams/published`, { credentials: 'include' });
 
         if (!res.ok) {
             const grid = document.getElementById('exams-grid');
@@ -271,7 +274,7 @@ function takeExam(examId) {
 // Load submissions
 async function loadSubmissions() {
     try {
-        const res = await fetch(`${API_BASE}/exams/submissions/me`);
+        const res = await fetch(`${API_BASE}/exams/submissions/me`, { credentials: 'include' });
         const submissions = await res.json();
 
         const tbody = document.querySelector('#submissions-table tbody');
