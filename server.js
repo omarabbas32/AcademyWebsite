@@ -38,18 +38,18 @@ app.use(
     session({
         secret: process.env.SESSION_SECRET || 'academy_secret_key_change_in_production',
         resave: false,
-        saveUninitialized: false,
+        saveUninitialized: true, // Changed to true to ensure session is created
         store: MongoStore.create({
             mongoUrl: MONGO_URL,
-            touchAfter: 24 * 3600, // Lazy session update (in seconds)
-            crypto: {
-                secret: process.env.SESSION_SECRET || 'academy_secret_key_change_in_production'
-            }
+            touchAfter: 24 * 3600,
+            stringify: false,
+            autoRemove: 'native',
+            ttl: 7 * 24 * 60 * 60 // 7 days in seconds
         }),
         cookie: {
-            httpOnly: false, // Allow JavaScript access to cookies
-            secure: false, // Allow cookies over HTTP (not just HTTPS)
-            sameSite: 'lax', // More permissive cross-site cookie policy
+            httpOnly: false,
+            secure: false,
+            sameSite: 'lax',
             maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
         }
     })
