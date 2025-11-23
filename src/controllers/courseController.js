@@ -1,4 +1,7 @@
 const Course = require('../models/courseModel.js');
+const Enrollment = require('../models/enrollmentModel.js');
+const EnrollmentRequest = require('../models/enrollmentRequestModel.js');
+const User = require('../models/userModel.js');
 
 // CREATE a new course
 exports.createCourse = async (req, res) => {
@@ -85,12 +88,10 @@ exports.deleteCourse = async (req, res) => {
     }
 };
 
-// ==================== ENROLLMENT ENDPOINTS ====================
+// ==================== ENROLLMENT REQUEST ENDPOINTS ====================
 
-const Enrollment = require('../models/enrollmentModel.js');
-
-// ENROLL in a course (User only - converts to student)
-exports.enrollInCourse = async (req, res) => {
+// REQUEST enrollment with payment proof (User only)
+exports.requestEnrollment = async (req, res) => {
     try {
         const courseId = req.params.id;
         const userId = req.session.userId;
@@ -104,33 +105,166 @@ exports.enrollInCourse = async (req, res) => {
         // Check if already enrolled
         const existingEnrollment = await Enrollment.findOne({
             user: userId,
-            course: courseId
+            course: courseId,
+            status: 'active'
         });
 
         if (existingEnrollment) {
             return res.status(400).json({ message: 'Already enrolled in this course' });
         }
 
-        // Create enrollment
-        const enrollment = await Enrollment.create({
+        // Check if already has pending request
+        const existingRequest = await EnrollmentRequest.findOne({
             user: userId,
             course: courseId,
-            status: 'active'
+            status: 'pending'
         });
 
-        // Update user role to student if they're just a user
-        const User = require('../models/userModel.js');
-        await User.findByIdAndUpdate(userId, { role: 'student' });
-        req.session.role = 'student'; // Update session
+        if (existingRequest) {
+            return res.status(400).json({ message: 'You already have a pending enrollment request for this course' });
+        }
+
+        // Payment proof is required
+        if (!req.file) {
+            return res.status(400).json({ message: 'Payment proof image is required' });
+        }
+
+        // Create enrollment request
+        const enrollmentRequest = await EnrollmentRequest.create({
+            user: userId,
+            course: courseId,
+            paymentProofUrl: req.file.path, // Cloudinary URL
+            message: req.body.message || '',
+            status: 'pending'
+        });
 
         res.status(201).json({
-            message: 'Successfully enrolled in course. You are now a student!',
-            enrollment
+            message: 'Enrollment request submitted successfully. Please wait for admin approval.',
+            request: enrollmentRequest
         });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
+
+// GET enrollment status for a course (User)
+exports.getEnrollmentStatus = async (req, res) => {
+    try {
+        const courseId = req.params.id;
+        const userId = req.session.userId;
+
+        // Check if enrolled
+        const enrollment = await Enrollment.findOne({
+            user: userId,
+            course: courseId,
+            status: 'active'
+        });
+
+        if (enrollment) {
+            return res.json({ status: 'enrolled', enrollment });
+        }
+
+        // Check if has pending/rejected request
+        const request = await EnrollmentRequest.findOne({
+            user: userId,
+            course: courseId
+        }).sort({ createdAt: -1 });
+
+        if (request) {
+            return res.json({ status: request.status, request });
+        }
+
+        res.json({ status: 'not_requested' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// GET all enrollment requests (Admin only)
+exports.getAllEnrollmentRequests = async (req, res) => {
+    try {
+        const { status } = req.query;
+        const filter = status ? { status } : {};
+
+        const requests = await EnrollmentRequest.find(filter)
+            .populate('user', 'name email username')
+            .populate('course', 'name')
+            .sort({ createdAt: -1 });
+
+        res.json(requests);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// APPROVE enrollment request (Admin only)
+exports.approveEnrollmentRequest = async (req, res) => {
+    try {
+        const requestId = req.params.id;
+
+        const enrollmentRequest = await EnrollmentRequest.findById(requestId);
+        if (!enrollmentRequest) {
+            return res.status(404).json({ message: 'Enrollment request not found' });
+        }
+
+        if (enrollmentRequest.status !== 'pending') {
+            return res.status(400).json({ message: 'This request has already been processed' });
+        }
+
+        // Create actual enrollment
+        const enrollment = await Enrollment.create({
+            user: enrollmentRequest.user,
+            course: enrollmentRequest.course,
+            status: 'active'
+        });
+
+        // Update user role to student if they're just a user
+        await User.findByIdAndUpdate(enrollmentRequest.user, { role: 'student' });
+
+        // Update request status
+        enrollmentRequest.status = 'approved';
+        enrollmentRequest.adminNote = req.body.adminNote || '';
+        await enrollmentRequest.save();
+
+        res.json({
+            message: 'Enrollment request approved successfully',
+            enrollment,
+            request: enrollmentRequest
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// REJECT enrollment request (Admin only)
+exports.rejectEnrollmentRequest = async (req, res) => {
+    try {
+        const requestId = req.params.id;
+
+        const enrollmentRequest = await EnrollmentRequest.findById(requestId);
+        if (!enrollmentRequest) {
+            return res.status(404).json({ message: 'Enrollment request not found' });
+        }
+
+        if (enrollmentRequest.status !== 'pending') {
+            return res.status(400).json({ message: 'This request has already been processed' });
+        }
+
+        // Update request status
+        enrollmentRequest.status = 'rejected';
+        enrollmentRequest.adminNote = req.body.adminNote || 'Request rejected';
+        await enrollmentRequest.save();
+
+        res.json({
+            message: 'Enrollment request rejected',
+            request: enrollmentRequest
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// ==================== OLD ENROLLMENT ENDPOINTS (Keep for existing enrollments) ====================
 
 // UNENROLL from a course
 exports.unenrollFromCourse = async (req, res) => {

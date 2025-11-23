@@ -55,7 +55,7 @@ app.use(
     })
 );
 
-// --- Import Routes ---
+// Import Routes 
 const authRoutes = require('./src/routes/authRoutes');
 const serviceRoutes = require('./src/routes/serviceRoutes');
 const courseRoutes = require('./src/routes/courseRoutes');

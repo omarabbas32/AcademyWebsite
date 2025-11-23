@@ -158,7 +158,7 @@ async function loadCourses() {
                     <span class="badge">📊 ${course.level}</span>
                     <span class="badge">👨‍🏫 ${course.instructor}</span>
                 </div>
-                <button class="card-btn primary" onclick="enrollInCourse('${course._id}')">Enroll Now</button>
+                <button class="card-btn primary" onclick="viewCourse('${course._id}')">View Course</button>
             </div>
         `).join('');
     } catch (err) {
@@ -196,33 +196,11 @@ async function loadEnrolledCourses() {
     }
 }
 
-// Enroll in course
-async function enrollInCourse(courseId) {
-    try {
-        const res = await fetch(`${API_BASE}/courses/${courseId}/enroll`, {
-            method: 'POST',
-            credentials: 'include'
-        });
-
-        const result = await res.json();
-
-        if (res.ok) {
-            alert(result.message);
-            // Update user role if changed
-            if (result.user) {
-                currentUser = result.user;
-                document.getElementById('user-role').textContent = currentUser.role.toUpperCase();
-            }
-            loadStats();
-            loadCourses();
-            loadEnrolledCourses();
-        } else {
-            alert(result.message || 'Failed to enroll');
-        }
-    } catch (err) {
-        alert('Error: ' + err.message);
-    }
+// View course details
+function viewCourse(courseId) {
+    window.location.href = `/course-detail.html?id=${courseId}`;
 }
+
 
 // Load exams
 async function loadExams() {

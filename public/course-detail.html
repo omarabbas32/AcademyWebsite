@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Details - IATD Academy</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .course-detail-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .course-header h1 {
+            margin: 0 0 1rem 0;
+            font-size: 2.5rem;
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .course-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .course-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .course-info {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .enrollment-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 2rem;
+            height: fit-content;
+        }
+
+        .enrollment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload-area:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+
+        .file-upload-area.dragover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-enrolled {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        @media (max-width: 768px) {
+            .course-content {
+                grid-template-columns: 1fr;
+            }
+
+            .course-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .enrollment-card {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="course-detail-container">
+        <!-- Course Header -->
+        <div class="course-header" id="courseHeader">
+            <h1 id="courseName">Loading...</h1>
+            <p id="courseDescription"></p>
+            <div class="course-meta">
+                <div class="course-meta-item">
+                    <span>📅</span>
+                    <span id="courseDuration"></span>
+                </div>
+                <div class="course-meta-item">
+                    <span>📊</span>
+                    <span id="courseLevel"></span>
+                </div>
+                <div class="course-meta-item">
+                    <span>👨‍🏫</span>
+                    <span id="courseInstructor"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Content -->
+        <div class="course-content">
+            <!-- Course Information -->
+            <div class="course-info">
+                <h2>About This Course</h2>
+                <div id="courseDetails"></div>
+
+                <h3 style="margin-top: 2rem;">Prerequisites</h3>
+                <p id="coursePrerequisites"></p>
+
+                <h3 style="margin-top: 2rem;">Syllabus</h3>
+                <div id="courseSyllabus"></div>
+            </div>
+
+            <!-- Enrollment Card -->
+            <div class="enrollment-card">
+                <div id="enrollmentStatus"></div>
+
+                <form id="enrollmentForm" class="enrollment-form" style="display: none;">
+                    <h3>Enroll in This Course</h3>
+                    
+                    <div>
+                        <label for="message">Message (Optional)</label>
+                        <textarea 
+                            id="message" 
+                            name="message" 
+                            rows="3" 
+                            placeholder="Any additional information..."
+                        ></textarea>
+                    </div>
+
+                    <div>
+                        <label>Payment Proof (Required) *</label>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <input 
+                                type="file" 
+                                id="paymentProof" 
+                                name="paymentProof" 
+                                accept="image/*" 
+                                required 
+                                style="display: none;"
+                            >
+                            <p>📸 Click or drag to upload payment proof</p>
+                            <p style="font-size: 0.875rem; color: #64748b; margin-top: 0.5rem;">
+                                Max size: 5MB | Formats: JPG, PNG, PDF
+                            </p>
+                        </div>
+                        <img id="imagePreview" alt="Payment proof preview">
+                    </div>
+
+                    <button type="submit" class="primary" id="submitBtn">
+                        Submit Enrollment Request
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/course-detail.js"></script>
+</body>
+</html>
