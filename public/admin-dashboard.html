@@ -50,23 +50,11 @@
                 <button class="tab-btn" onclick="switchTab('users')">Users</button>
                 <button class="tab-btn" onclick="switchTab('submissions')">Submissions</button>
                 <button class="tab-btn" onclick="switchTab('sites')">Offline Sites</button>
+                <button class="tab-btn" onclick="switchTab('enrollment-requests')">Enrollment Requests</button>
             </div>
 
             <!-- Team Members Tab -->
             <div id="team-tab" class="tab-content active">
-                <div class="card">
-                    <h2>Add Team Member</h2>
-                    <form id="create-team-member-form">
-                        <label>Name</label>
-                        <input type="text" name="name" required />
-                        <label>Job Title</label>
-                        <input type="text" name="jobTitle" required />
-                        <label>Image</label>
-                        <input type="file" name="image" accept="image/*" />
-                        <button class="primary" type="submit">Add Team Member</button>
-                    </form>
-                </div>
-
                 <div class="card">
                     <h2>Team Members</h2>
                     <table>
@@ -256,11 +244,7 @@
                         <label>Email</label>
                         <input type="email" name="email" />
                         <label>Google Maps Link</label>
-                        <input type="url" name="mapLink" placeholder="https://maps.google.com/..." />
-                        <label>
-                            <input type="checkbox" name="isActive" checked />
-                            Active
-                        </label>
+                        <input type="url" name="googleMapsLink" />
                         <button class="primary" type="submit">Add Offline Site</button>
                     </form>
                 </div>
@@ -282,6 +266,23 @@
                     </table>
                 </div>
             </div>
+                <!-- Enrollment Requests Tab -->
+                <div id="enrollment-requests-tab" class="tab-content">
+                    <div class="card">
+                        <h2>Enrollment Requests</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Course Name</th>
+                                    <th>Instructor</th>
+                                    <th>Pending Requests</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="enrollment-requests-table"></tbody>
+                        </table>
+                    </div>
+                </div>
         </div>
     </div>
 

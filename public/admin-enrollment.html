@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Enrollment Requests</title>
+    <link rel="stylesheet" href="/css/admin.css" />
+    <style>
+        body {font-family: 'Inter', sans-serif; margin:0; padding:0; background:#f5f5f5;}
+        .container {max-width:900px; margin:auto; padding:2rem;}
+        h1 {text-align:center; margin-bottom:2rem;}
+        table {width:100%; border-collapse:collapse; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.1);}
+        th, td {padding:0.75rem; text-align:left; border-bottom:1px solid #e0e0e0;}
+        th {background:#fafafa;}
+        .actions button {margin-right:0.5rem;}
+        .status-badge {font-weight:600;}
+        .status-pending {color:#ff9800;}
+        .status-approved {color:#4caf50;}
+        .status-rejected {color:#f44336;}
+        .back-btn {margin-top:1rem; display:inline-block;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Enrollment Requests for <span id="courseName"></span></h1>
+        <table id="requestsTable">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Message</th>
+                    <th>Proof</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <a href="/admin-dashboard.html" class="back-btn">← Back to Dashboard</a>
+    </div>
+    <script src="/js/admin-enrollment.js"></script>
+</body>
+</html>

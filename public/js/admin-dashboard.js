@@ -23,6 +23,7 @@ function switchTab(tab) {
     else if (tab === 'users') loadUsers();
     else if (tab === 'submissions') loadSubmissions();
     else if (tab === 'sites') loadOfflineSites();
+    else if (tab === 'enrollment-requests') loadEnrollmentRequests();
 }
 
 // Admin Login
@@ -131,6 +132,11 @@ async function loadCourses() {
     try {
         const res = await fetch(`${API_BASE}/courses`, { credentials: 'include' });
         const courses = await res.json();
+
+        if (!Array.isArray(courses)) {
+            console.error('Expected array of courses but got:', courses);
+            return;
+        }
 
         const tbody = document.getElementById('courses-table');
         tbody.innerHTML = courses.map(course => `
@@ -279,7 +285,7 @@ async function loadExams() {
         const exams = await res.json();
 
         const tbody = document.getElementById('exams-table');
-        tbody.innerHTML = exams.map(exam =>  `
+        tbody.innerHTML = exams.map(exam => `
             <tr>
                 <td>${exam.title}</td>
                 <td>${exam.questions.length}</td>
@@ -524,5 +530,113 @@ async function deleteOfflineSite(id) {
         }
     } catch (err) {
         alert('Error deleting offline site: ' + err.message);
+    }
+}
+
+// ==================== ENROLLMENT REQUESTS ====================
+
+async function loadEnrollmentRequests() {
+    try {
+        // Fetch all courses
+        const coursesRes = await fetch(`${API_BASE}/courses`, { credentials: 'include' });
+        const courses = await coursesRes.json();
+
+        const tbody = document.getElementById('enrollment-requests-table');
+        if (!tbody) return;
+
+        if (!Array.isArray(courses) || courses.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">No courses available</td></tr>';
+            return;
+        }
+
+        // For each course, fetch the count of pending enrollment requests
+        const coursesWithCounts = await Promise.all(
+            courses.map(async (course) => {
+                try {
+                    const reqRes = await fetch(`${API_BASE}/courses/${course._id}/enrollment-requests`, { credentials: 'include' });
+                    const requests = await reqRes.json();
+                    return {
+                        ...course,
+                        pendingCount: Array.isArray(requests) ? requests.length : 0
+                    };
+                } catch (err) {
+                    console.error(`Error fetching requests for course ${course._id}:`, err);
+                    return { ...course, pendingCount: 0 };
+                }
+            })
+        );
+
+        tbody.innerHTML = coursesWithCounts.map(course => `
+            <tr>
+                <td>${course.name}</td>
+                <td>${course.instructor || 'N/A'}</td>
+                <td>
+                    <span style="padding:6px 12px; border-radius:20px; background:${course.pendingCount > 0 ? '#fef3c7' : '#f3f4f6'}; color:${course.pendingCount > 0 ? '#92400e' : '#6b7280'}; font-weight:bold; font-size:0.9rem">
+                        ${course.pendingCount} pending
+                    </span>
+                </td>
+                <td>
+                    ${course.pendingCount > 0
+                ? `<button class="btn-success btn-small" onclick="viewCourseRequests('${course._id}', '${course.name.replace(/'/g, "\\'")}')">View Requests</button>`
+                : '<span style="color:#9ca3af">No requests</span>'
+            }
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        console.error('Error loading enrollment requests:', err);
+        const tbody = document.getElementById('enrollment-requests-table');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#ef4444">Error loading data. Please try again.</td></tr>';
+        }
+    }
+}
+
+function viewCourseRequests(courseId, courseName) {
+    // Open the admin-enrollment.html page with the course ID
+    window.location.href = `/admin-enrollment.html?courseId=${courseId}&courseName=${encodeURIComponent(courseName)}`;
+}
+
+async function approveRequest(id) {
+    if (!confirm('Approve this enrollment request?')) return;
+    try {
+        const res = await fetch(`${API_BASE}/courses/admin/enrollment-requests/${id}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ adminNote: 'Approved via dashboard' })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            alert('Request approved!');
+            loadEnrollmentRequests();
+        } else {
+            alert(data.message || 'Error approving request');
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+async function rejectRequest(id) {
+    const reason = prompt('Enter reason for rejection:');
+    if (reason === null) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/courses/admin/enrollment-requests/${id}/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ adminNote: reason })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            alert('Request rejected!');
+            loadEnrollmentRequests();
+        } else {
+            alert(data.message || 'Error rejecting request');
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
     }
 }
