@@ -117,6 +117,15 @@ exports.getAllSubmissions = async (req, res) => {
 
 // GET published exams (User/Student)
 exports.getPublishedExams = async (req, res) => {
+    try {
+        const exams = await Exam.find({ isPublished: true })
+            .populate('course', 'name instructor')
+            .sort({ createdAt: -1 });
+
+        res.json(exams);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
 };
 
 // GET single published exam by ID (User/Student)

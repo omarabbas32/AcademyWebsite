@@ -27,7 +27,8 @@ app.use(
         saveUninitialized: false,
         cookie: {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: process.env.NODE_ENV === 'production', // true on Vercel (HTTPS)
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' required for cross-origin cookies on Vercel
             maxAge: 1000 * 60 * 60 * 24 // 24 hours
         }
     })
