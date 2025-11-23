@@ -61,7 +61,7 @@ const serviceRoutes = require('./src/routes/serviceRoutes');
 const courseRoutes = require('./src/routes/courseRoutes');
 const contactInfoRoutes = require('./src/routes/contactInfoRoutes');
 const teamMemberRoutes = require('./src/routes/teamMemberRoutes');
-const aboutUsRoutes = require('./src/routes/aboutusRoutes');
+const aboutusRoutes = require('./src/routes/aboutusRoutes');
 const emailRoutes = require('./src/routes/emailRoutes');
 const examRoutes = require('./src/routes/examRoutes');
 const offlineSiteRoutes = require('./src/routes/offlineSiteRoutes');
@@ -78,7 +78,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/email', emailRoutes);
 
 // Protected routes (with session-based auth in route files)
-app.use('/api/about', aboutUsRoutes);
+app.use('/api/about', aboutusRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/courses', courseRoutes); // Replaced projects with courses
 app.use('/api/contact-info', contactInfoRoutes);
