@@ -33,7 +33,7 @@ if (!MONGO_URL) {
     process.exit(1);
 }
 
-// Session configuration with MongoDB store
+// Session configuration with MongoDB store (relaxed security for easier development)
 app.use(
     session({
         secret: process.env.SESSION_SECRET || 'academy_secret_key_change_in_production',
@@ -47,10 +47,10 @@ app.use(
             }
         }),
         cookie: {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // true on Vercel (HTTPS)
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' required for cross-origin cookies on Vercel
-            maxAge: 1000 * 60 * 60 * 24 // 24 hours
+            httpOnly: false, // Allow JavaScript access to cookies
+            secure: false, // Allow cookies over HTTP (not just HTTPS)
+            sameSite: 'lax', // More permissive cross-site cookie policy
+            maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
         }
     })
 );
