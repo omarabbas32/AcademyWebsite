@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const path = require('path');
 
 const app = express();
@@ -24,12 +25,27 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // For form data
 
-// Session configuration
+// MongoDB connection URL
+const MONGO_URL = process.env.MONGO_URL || process.env.MONGO_URI;
+
+if (!MONGO_URL) {
+    console.error('❌ MONGO_URL or MONGO_URI is not defined in .env file');
+    process.exit(1);
+}
+
+// Session configuration with MongoDB store
 app.use(
     session({
         secret: process.env.SESSION_SECRET || 'academy_secret_key_change_in_production',
         resave: false,
         saveUninitialized: false,
+        store: MongoStore.create({
+            mongoUrl: MONGO_URL,
+            touchAfter: 24 * 3600, // Lazy session update (in seconds)
+            crypto: {
+                secret: process.env.SESSION_SECRET || 'academy_secret_key_change_in_production'
+            }
+        }),
         cookie: {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // true on Vercel (HTTPS)
@@ -110,12 +126,7 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // --- Server and Database Connection ---
 const PORT = process.env.PORT || 5000;
-const MONGO_URL = process.env.MONGO_URL || process.env.MONGO_URI;
 
-if (!MONGO_URL) {
-    console.error('❌ MONGO_URL or MONGO_URI is not defined in .env file');
-    process.exit(1);
-}
 
 mongoose.connect(MONGO_URL)
     .then(() => {
@@ -127,7 +138,7 @@ mongoose.connect(MONGO_URL)
         if (!process.env.VERCEL) {
             const server = app.listen(PORT, () => {
                 console.log(`✓ IATD Academy Server running on http://localhost:${PORT}`);
-                console.log(`✓ الأكاديمية الدولية للتدريب والتنمية`);
+                //console.log(`✓ الأكاديمية الدولية للتدريب والتنمية`);
                 console.log(`✓ International Academy for Training and Development`);
                 console.log(`✓ Admin Dashboard: http://localhost:${PORT}/admin-dashboard.html`);
                 console.log(`✓ Student Dashboard: http://localhost:${PORT}/user-dashboard.html`);
