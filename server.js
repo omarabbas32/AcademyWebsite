@@ -8,9 +8,14 @@ const path = require('path');
 const app = express();
 
 // --- Middlewares ---
-// CORS configuration - allow all origins for development
+// CORS configuration - allow credentials with dynamic origin
 app.use(cors({
-    origin: '*', // Allow all origins
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        // Allow all origins in development/production
+        callback(null, origin);
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     credentials: true

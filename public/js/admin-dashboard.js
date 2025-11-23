@@ -270,10 +270,16 @@ document.getElementById('create-exam-form')?.addEventListener('submit', async (e
 async function loadExams() {
     try {
         const res = await fetch(`${API_BASE}/exams/admin/all`, { credentials: 'include' });
+
+        if (!res.ok) {
+            console.error('Failed to load exams:', res.status);
+            return;
+        }
+
         const exams = await res.json();
 
         const tbody = document.getElementById('exams-table');
-        tbody.innerHTML = exams.map(exam => `
+        tbody.innerHTML = exams.map(exam =>  `
             <tr>
                 <td>${exam.title}</td>
                 <td>${exam.questions.length}</td>
